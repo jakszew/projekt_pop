@@ -55,14 +55,17 @@ def add_user():
         print("Podaj nazwę galerii.")
         return
 
-    user = {"name": nazwa, "employees": [], "clients": []}
+    user = {"name": nazwa, "employees": [], "clients": [], "markers": []}
     users.append(user)
 
     entry_name.delete(0, END)
     entry_name.focus()
     show_users()
-    # przekazujemy nazwę do funkcji, która znajdzie i oznaczy lokalizację
-    find_and_mark_gallery(nazwa)
+
+    # Znajdź i oznacz lokalizację, zapisz marker w słowniku galerii
+    marker = find_and_mark_gallery(nazwa)
+    if marker:
+        users[-1]["markers"] = [marker]
 
 # --- Wyświetlanie listy galerii ---
 def show_users():
@@ -88,14 +91,15 @@ def remove_user():
     show_users()
 # --- Edycja galerii ---
 def edit_user():
-    i=listbox_lista_obiektow.curselection()
+    i = listbox_lista_obiektow.curselection()
     if not i:
         return
-    i=i[0]
-    name=users[i]["name"]
+    i = i[0]
+    name = users[i]["name"]
     entry_name.delete(0, END)
     entry_name.insert(0, name)
     button_doda_obiekt.config(text="Zapisz", command=lambda: update_user(i))
+
 
 def update_user(i):
     new_name = entry_name.get().strip()
@@ -103,7 +107,20 @@ def update_user(i):
         print("Podaj nazwę galerii sztuki")
         return
 
+    # Usuń stare markery galerii
+    if "markers" in users[i]:
+        for marker in users[i]["markers"]:
+            marker.delete()
+        users[i]["markers"] = []
+
+    # Zaktualizuj nazwę galerii
     users[i]['name'] = new_name
+
+    # Dodaj nowe markery
+    marker = find_and_mark_gallery(new_name)
+    if marker:
+        users[i]["markers"] = [marker]
+
     entry_name.delete(0, END)
     entry_name.focus()
     button_doda_obiekt.config(text="Dodaj obiekt", command=add_user)
